@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="mr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Farmer Cup 2026 — प्रोफाइल फ्रेम जनरेटर</title>
+  <style>
+    :root{
+      /* soft, professional, agriculture-friendly palette (no harsh teal) */
+      --bg:#f7f4ef;
+      --card:#ffffff;
+      --soft:#fbf8f2;
+      --line:#e7e0d6;
+      --text:#1b1b1b;
+      --muted:#5a5a5a;
+      --accent:#6b5b4b;     /* earthy brown */
+      --accent2:#8a7a66;    /* lighter brown */
+      --shadow: 0 10px 30px rgba(50,40,25,0.10);
+      --radius: 22px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{
+      margin:0; padding:0; width:100%; height:100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans Devanagari", "Noto Sans", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .screen{
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:stretch;
+      padding: 10px 10px 14px;
+    }
+
+    /* Full-height mobile card */
+    .card{
+      width:100%;
+      max-width: 680px;
+      height: 100vh;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 14px 16px;
+      display:grid;
+      gap: 10px;
+      grid-template-rows: auto auto auto auto auto;
+    }
+
+    h1{
+      margin: 2px 0 0;
+      font-size: clamp(22px, 3.1vh, 30px);
+      line-height: 1.12;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+
+    .instructions{
+      margin:0;
+      padding: 12px 12px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      font-size: clamp(18px, 2.5vh, 24px);
+      line-height: 1.6;
+      font-weight: 750;
+    }
+
+    .fieldBlock{
+      display:grid;
+      gap: 10px;
+    }
+
+    .label{
+      font-size: clamp(16px, 2.1vh, 20px);
+      font-weight: 900;
+      margin: 0;
+    }
+
+    input[type="text"], select{
+      width:100%;
+      padding: 14px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    input::placeholder{ color: #999; font-weight: 650; }
+
+    /* Upload UI */
+    input[type="file"]{ display:none; }
+
+    .uploadRow{
+      display:grid;
+      gap: 10px;
+    }
+
+    .uploadBtn{
+      width:100%;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--accent);
+      font-weight: 950;
+      font-size: clamp(16px, 2.2vh, 20px);
+      box-shadow: 0 4px 14px rgba(50,40,25,0.08);
+    }
+    .uploadBtn:active{ transform: scale(0.99); }
+
+    .fileName{
+      font-size: clamp(13px, 1.8vh, 16px);
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #f3efe8;
+      border: 1px solid var(--line);
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .zoomBlock{
+      padding: 12px 12px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .zoomLabel{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      font-size: clamp(16px, 2.0vh, 20px);
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .hint{
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    input[type="range"]{
+      width:100%;
+      height: 46px;
+      accent-color: var(--accent2);
+    }
+
+    /* Preview area: square, controlled height so it doesn't elongate */
+    .previewWrap{
+      width: 100%;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: #fff;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height: min(44vh, 420px);
+    }
+
+    .previewInner{
+      height: 100%;
+      aspect-ratio: 1 / 1;
+      width: auto;
+    }
+
+    canvas{
+      width: 100%;
+      height: 100%;
+      display:block;
+      touch-action:none;
+    }
+
+    .btnRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    button{
+      padding: 16px;
+      border-radius: 18px;
+      border: none;
+      font-weight: 950;
+      font-size: clamp(16px, 2.2vh, 20px);
+      letter-spacing: 0.2px;
+    }
+
+    .primary{
+      background: linear-gradient(180deg, #8a7a66, #6b5b4b);
+      color: #fff;
+    }
+    .primary:disabled{ background: #bcbcbc; }
+
+    .secondary{
+      background: #efe7dc;
+      color: #3a332a;
+      border: 1px solid var(--line);
+    }
+
+    @media (max-height: 730px){
+      .card{ gap: 8px; }
+      .instructions{ font-size: clamp(16px, 2.2vh, 20px); padding: 10px 10px; }
+      .zoomBlock{ padding: 10px 10px; }
+      .uploadBtn, button{ padding: 14px; }
+      .previewWrap{ height: min(38vh, 340px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="screen">
+    <div class="card">
+      <h1>I am proud to be a part of the Farmer Cup 2026</h1>
+
+      <div class="instructions">
+        1) तुमचा फोटो <b>अपलोड</b> करा<br>
+        2) फोटो <b>हलवा</b> आणि <b>Zoom</b> करून फ्रेममध्ये बसवा<br>
+        3) <b>नाव</b> लिहा आणि <b>पद</b> निवडा<br>
+        4) <b>डाउनलोड</b> करा आणि शेअर करा
+      </div>
+
+      <div class="fieldBlock">
+        <div>
+          <div class="label">तुमचं नाव</div>
+          <input id="name" type="text" placeholder="उदा. रोहिणी पाटील" maxlength="40" />
+        </div>
+
+        <div>
+          <div class="label">तुमचं पद (Designation) निवडा</div>
+          <select id="designation">
+            <option value="">— पद निवडा —</option>
+            <option value="Field Officer">Field Officer</option>
+            <option value="Rajya Samanvayak">Rajya Samanvayak</option>
+            <option value="Vibhagiy Samanvayak">Vibhagiy Samanvayak</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="uploadRow">
+        <div class="label">फोटो अपलोड</div>
+        <button class="uploadBtn" id="uploadBtn" type="button">फोटो गॅलरीतून निवडा</button>
+        <div class="fileName" id="fileName">अद्याप फोटो निवडलेला नाही</div>
+        <!-- Gallery-first: don't set capture (camera). Many phones will still show camera; this biases to gallery -->
+        <input id="photoInput" type="file" accept="image/*" />
+      </div>
+
+      <div class="zoomBlock">
+        <div class="zoomLabel">
+          <span>Zoom</span>
+          <span class="hint">फोटो बोटाने हलवा</span>
+        </div>
+        <input id="zoomSlider" type="range" min="1" max="3" step="0.01" value="1.2" />
+      </div>
+
+      <div class="previewWrap">
+        <div class="previewInner">
+          <canvas id="canvas" width="1080" height="1080"></canvas>
+        </div>
+      </div>
+
+      <div class="btnRow">
+        <button class="secondary" id="resetBtn" type="button">रीसेट</button>
+        <button class="primary" id="downloadBtn" type="button" disabled>डाउनलोड</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * HOW TO USE THIS ON GITHUB PAGES:
+     * 1) Put this file as: index.html in repo root
+     * 2) Add your pre-made frame PNG as: frame.png in repo root
+     * 3) GitHub Pages: Settings → Pages → Deploy from branch → main / (root)
+     */
+
+    // ====== CONFIG ======
+    // Put your pre-made frame file in the same folder as index.html
+    // The frame should already include the top headline text if you want it on the poster image.
+    const FRAME_PATH = "frame.png"; // <-- upload a file with this name in your repo
+
+    // Photo hole (edit if your frame’s cutout is different)
+    // Default: large circle centered slightly above middle (looks good on most frames)
+    const CUTOUT = {
+      shape: "circle",  // "circle" or "roundedRect"
+      cx: 540,
+      cy: 520,
+      r: 340,           // circle radius
+      // if shape is roundedRect:
+      x: 180, y: 210, w: 720, h: 720, radius: 48
+    };
+
+    // Name & designation placement (bottom area)
+    // Adjust these numbers to match your frame design.
+    const TEXT_AREA = {
+      nameY: 935,         // baseline y for name
+      desgY: 995,         // baseline y for designation
+      maxWidth: 920
+    };
+
+    // ====== Elements ======
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const nameInput = document.getElementById("name");
+    const designationEl = document.getElementById("designation");
+
+    const photoInput = document.getElementById("photoInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const fileNameEl = document.getElementById("fileName");
+
+    const zoomSlider = document.getElementById("zoomSlider");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    // ====== State ======
+    const frameImg = new Image();
+    frameImg.src = FRAME_PATH;
+
+    let userImg = null;
+    let scale = parseFloat(zoomSlider.value); // multiplier on top of cover-scale
+    let offsetX = 540;
+    let offsetY = 520;
+
+    // Drag state
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    // ====== Render ======
+    function drawBackground(){
+      // White base so PNG looks clean on any platform
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0,0,1080,1080);
+    }
+
+    function clipCutout(){
+      ctx.beginPath();
+      if(CUTOUT.shape === "circle"){
+        ctx.arc(CUTOUT.cx, CUTOUT.cy, CUTOUT.r, 0, Math.PI*2);
+      } else {
+        // rounded rectangle
+        roundRectPath(CUTOUT.x, CUTOUT.y, CUTOUT.w, CUTOUT.h, CUTOUT.radius);
+      }
+      ctx.closePath();
+      ctx.clip();
+    }
+
+    function drawUserPhoto(){
+      if(!userImg) return;
+
+      ctx.save();
+      clipCutout();
+
+      const iw = userImg.width, ih = userImg.height;
+
+      // cover-scale into cutout bounding square/rect
+      let targetW, targetH;
+      if(CUTOUT.shape === "circle"){
+        targetW = CUTOUT.r * 2;
+        targetH = CUTOUT.r * 2;
+      } else {
+        targetW = CUTOUT.w;
+        targetH = CUTOUT.h;
+      }
+
+      const base = Math.max(targetW/iw, targetH/ih);
+      const s = base * scale;
+
+      const dw = iw * s;
+      const dh = ih * s;
+
+      ctx.drawImage(userImg, offsetX - dw/2, offsetY - dh/2, dw, dh);
+      ctx.restore();
+    }
+
+    function drawTexts(){
+      const name = (nameInput.value || "").trim();
+      const desg = (designationEl.value || "").trim();
+
+      // Only draw if something entered/selected (so frame stays clean)
+      if(!name && !desg) return;
+
+      // Subtle shadow for readability
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#1b1b1b";
+      ctx.shadowColor = "rgba(0,0,0,0.15)";
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 2;
+
+      // Name: bold
+      if(name){
+        fitText(name, 540, TEXT_AREA.nameY, TEXT_AREA.maxWidth, 64, 40, 900);
+      }
+
+      // Designation: smaller + uppercase
+      if(desg){
+        const label = desg.toUpperCase();
+        fitText(label, 540, TEXT_AREA.desgY, TEXT_AREA.maxWidth, 34, 22, 800);
+      }
+
+      ctx.restore();
+    }
+
+    function drawFrame(){
+      // Frame must be drawn AFTER photo & texts if you want frame overlay on top.
+      // If you want texts ABOVE the frame, call drawTexts() after this.
+      ctx.drawImage(frameImg, 0, 0, 1080, 1080);
+    }
+
+    function render(){
+      drawBackground();
+      drawUserPhoto();
+
+      // Decide layering:
+      // If your frame has empty bottom plate and you want text on top of it, draw frame first, then text.
+      // If your frame has a solid overlay where you want text tucked below, draw text first, then frame.
+      //
+      // Common best: photo -> frame -> text
+      drawFrame();
+      drawTexts();
+    }
+
+    frameImg.onload = render;
+    frameImg.onerror = () => {
+      // If frame fails to load, show a message on canvas so you notice immediately
+      drawBackground();
+      ctx.fillStyle = "#b00020";
+      ctx.font = "800 32px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("फ्रेम सापडली नाही (frame.png)", 540, 540);
+      ctx.font = "600 22px system-ui, sans-serif";
+      ctx.fillStyle = "#444";
+      ctx.fillText("repo root मध्ये frame.png अपलोड करा", 540, 585);
+    };
+
+    // ====== Input events ======
+    uploadBtn.onclick = () => photoInput.click();
+
+    photoInput.onchange = () => {
+      const file = photoInput.files && photoInput.files[0];
+      if(!file) return;
+
+      fileNameEl.textContent = file.name;
+
+      const img = new Image();
+      img.onload = () => {
+        userImg = img;
+        // Start centered in the cutout
+        offsetX = CUTOUT.shape === "circle" ? CUTOUT.cx : (CUTOUT.x + CUTOUT.w/2);
+        offsetY = CUTOUT.shape === "circle" ? CUTOUT.cy : (CUTOUT.y + CUTOUT.h/2);
+        render();
+        downloadBtn.disabled = false;
+      };
+      img.src = URL.createObjectURL(file);
+    };
+
+    zoomSlider.oninput = () => {
+      scale = parseFloat(zoomSlider.value);
+      render();
+    };
+
+    nameInput.oninput = render;
+    designationEl.onchange = render;
+
+    resetBtn.onclick = () => {
+      nameInput.value = "";
+      designationEl.value = "";
+      photoInput.value = "";
+      fileNameEl.textContent = "अद्याप फोटो निवडलेला नाही";
+      userImg = null;
+
+      scale = 1.2;
+      zoomSlider.value = "1.2";
+
+      offsetX = CUTOUT.shape === "circle" ? CUTOUT.cx : (CUTOUT.x + CUTOUT.w/2);
+      offsetY = CUTOUT.shape === "circle" ? CUTOUT.cy : (CUTOUT.y + CUTOUT.h/2);
+
+      downloadBtn.disabled = true;
+      render();
+    };
+
+    downloadBtn.onclick = () => {
+      // Validate (optional): encourage designation
+      // If you want mandatory fields, uncomment below:
+      // if(!nameInput.value.trim()){ alert("कृपया तुमचं नाव लिहा"); return; }
+      // if(!designationEl.value){ alert("कृपया पद निवडा"); return; }
+
+      const a = document.createElement("a");
+      a.download = "farmer_cup_2026_badge.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    };
+
+    // ====== Drag to reposition (pointer events) ======
+    canvas.onpointerdown = (e) => {
+      if(!userImg) return;
+      dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    };
+
+    canvas.onpointermove = (e) => {
+      if(!dragging || !userImg) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = 1080 / rect.width;
+      const scaleY = 1080 / rect.height;
+
+      offsetX += (e.clientX - lastX) * scaleX;
+      offsetY += (e.clientY - lastY) * scaleY;
+
+      lastX = e.clientX;
+      lastY = e.clientY;
+
+      render();
+    };
+
+    canvas.onpointerup = () => dragging = false;
+    canvas.onpointercancel = () => dragging = false;
+
+    // ====== Helpers ======
+    function roundRectPath(x,y,w,h,r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+    }
+
+    function fitText(text, x, y, maxWidth, startSize, minSize, weight){
+      let size = startSize;
+      while(size >= minSize){
+        ctx.font = `${weight} ${size}px system-ui, -apple-system, BlinkMacSystemFont, "Noto Sans Devanagari", Arial, sans-serif`;
+        if(ctx.measureText(text).width <= maxWidth) break;
+        size -= 2;
+      }
+      ctx.fillText(text, x, y);
+    }
+
+    // initial draw
+    render();
+  </script>
+</body>
+</html>
